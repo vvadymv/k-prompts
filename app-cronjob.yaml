@@ -1,0 +1,22 @@
+
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: export-rbac-users
+spec:
+  schedule: "0 0 1 * *"  # Runs at midnight on the first day of every month
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: export-rbac-users
+            image: your-export-script-image:latest
+            command: ["/bin/sh", "-c"]
+            args:
+              - |
+                #!/bin/sh
+                kubectl get rbac.authorization.k8s.io --all-namespaces -o json > /tmp/rbac-users.json &&
+                echo "Here are the RBAC users for this month" | mail -s "Monthly RBAC Users Export" -a /tmp/rbac-users.json your-email@example.com
+          restartPolicy: OnFailure
+

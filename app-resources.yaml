@@ -1,0 +1,74 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: multi-container-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: multi-container-app
+  template:
+    metadata:
+      labels:
+        app: multi-container-app
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:latest
+          ports:
+            - containerPort: 80
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+            requests:
+              memory: "64Mi"
+              cpu: "250m"
+          livenessProbe:  # Liveness probe to check if nginx is running
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          readinessProbe:  # Readiness probe to check if nginx is ready to serve
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          volumeMounts:
+            - name: shared-storage
+              mountPath: /usr/share/nginx/html  # Mount point for shared storage
+
+        - name: log-exporter
+          image: log-exporter:latest
+          ports:
+            - containerPort: 8080
+          resources:
+            limits:
+              memory: "64Mi"
+              cpu: "250m"
+            requests:
+              memory: "32Mi"
+              cpu: "100m"
+          livenessProbe:  # Liveness probe for log exporter
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          readinessProbe:  # Readiness probe for log exporter
+            httpGet:
+              path: /ready
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          volumeMounts:
+            - name: shared-storage
+              mountPath: /var/log  # Mount point for shared storage
+
+      volumes:
+        - name: shared-storage
+          emptyDir: {}  # Shared volume for nginx and log-exporter
+

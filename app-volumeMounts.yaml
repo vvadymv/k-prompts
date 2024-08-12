@@ -1,0 +1,40 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+spec:
+  replicas: 3  # Number of desired replicas
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:latest  # NGINX image
+        ports:
+        - containerPort: 80  # Port that NGINX listens on
+        livenessProbe:  # Liveness probe configuration
+          httpGet:
+            path: /healthz
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:  # Readiness probe configuration
+          httpGet:
+            path: /healthz
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        volumeMounts:  # Volume mounts
+        - mountPath: /usr/share/nginx/html  # Path where the volume will be mounted
+          name: nginx-storage  # Name of the volume
+      volumes:  # Define volumes
+      - name: nginx-storage
+        emptyDir: {}  # EmptyDir volume type
+
+

@@ -1,0 +1,25 @@
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: email-log-config
+  namespace: default
+spec:
+  template:
+    spec:
+      containers:
+      - name: email-log-sender
+        image: your-email-sending-image:latest
+        env:
+        - name: EMAIL_RECIPIENT
+          value: your-email@example.com
+        command: ["/bin/sh", "-c"]
+        args: 
+          - |
+            # Fetch log configuration for pods
+            kubectl get pods -n default -o json | \
+            jq '.items[] | {name: .metadata.name, logConfig: .spec.containers[].resources.limits}'
+            | send-email --to ${EMAIL_RECIPIENT} --subject "Pod Log Configurations"
+      restartPolicy: Never
+  backoffLimit: 4
+
