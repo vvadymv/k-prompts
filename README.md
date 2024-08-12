@@ -1,4 +1,4 @@
-# Promts example
+# Prompts examples
 
 |NAME|PROMPT|DESCRIPTION|EXAMPLE|
 |----|------|-----------|-------|
